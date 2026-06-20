@@ -1,83 +1,94 @@
-# Forge: Autonomous AI Software Company
+# ForgeAI: Multi-Agent Autonomous Software Factory
 
 ## 1. Introduction
 
-Forge is an Autonomous AI Software Company that explores how multiple AI agents can collaborate to perform software engineering tasks. Instead of relying on a single large language model to solve an entire problem, Forge divides responsibilities among specialized agents that communicate through shared state, memory, and an event-driven architecture.
+ForgeAI is a Multi-Agent Autonomous Software Factory that converts natural language product ideas into full-stack application skeletons using collaborating AI agents powered by Ollama and Qwen3. The system simulates a real software company where specialized AI agents cooperate to perform different stages of software development, including requirement engineering, architecture design, task planning, backend generation, and frontend generation.
 
-The system accepts a product idea from the user and automatically generates:
-
-* Product Requirement Documents (PRDs)
-* Software Architecture
-* Engineering Tasks
-* Backend Code Skeletons
-
-Forge uses locally hosted large language models through Ollama and Qwen3, enabling AI-assisted software planning and generation without relying on cloud APIs.
+The objective of this project is to explore how multiple autonomous AI agents can collaborate through shared state and event-driven communication to automate the software development lifecycle.
 
 ---
 
 ## 2. Motivation
 
-Modern AI coding assistants generally operate as single-agent systems where one model attempts to perform all tasks, including planning, architecture design, coding, and debugging.
+Traditional AI coding assistants typically follow the pipeline:
 
-However, real software companies divide responsibilities among specialized teams such as product managers, architects, engineers, and testers.
+**Prompt → LLM → Code**
 
-Forge explores the following question:
+This approach suffers from several limitations:
 
-**Can software engineering be modeled as a collaborative multi-agent system where each AI agent specializes in a specific role?**
+* Lack of separation of responsibilities.
+* No structured software engineering workflow.
+* Difficult to scale for large projects.
+* No collaboration among specialized agents.
 
-The project attempts to answer this question by simulating an autonomous software company.
+ForgeAI addresses these limitations by introducing multiple specialized agents that emulate the workflow of a software company:
+
+**Idea → CEO → Architect → Planner → Developer → Frontend**
+
+This modular design improves maintainability, extensibility, and allows each agent to specialize in a particular task.
 
 ---
 
 ## 3. System Architecture
 
-Forge follows a sequential multi-agent pipeline:
+The overall architecture of ForgeAI is illustrated below:
 
+```text
 User Idea
-
-↓
+    │
+    ▼
 
 CEO Agent
+(Product Requirements)
 
-↓
-
-Product Requirement Document (PRD)
-
-↓
+    │
+    ▼
 
 Architect Agent
+(System Architecture)
 
-↓
-
-Software Architecture
-
-↓
+    │
+    ▼
 
 Planner Agent
+(Task Planning)
 
-↓
-
-Engineering Tasks
-
-↓
+    │
+    ▼
 
 Developer Agent
+(Backend Generation)
 
-↓
+    │
+    ▼
 
-Backend Code Skeletons
+Frontend Agent
+(Frontend Generation)
+
+
+Shared Components
+
+• Ollama + Qwen3
+• ProjectState
+• EventBus
+• AgentRegistry
+• CodeGeneratorTool
+• FileWriterTool
+```
 
 ---
 
-### CEO Agent
+## 4. Agents
 
-The CEO Agent acts as the product manager.
+### 4.1 CEO Agent
 
-Input:
+The CEO Agent is responsible for requirement engineering.
 
-"Build Netflix for Books"
+#### Input
 
-Output:
+Natural language product idea.
+
+#### Output
 
 * Vision
 * Target Users
@@ -86,308 +97,585 @@ Output:
 * User Stories
 * Success Metrics
 
-The CEO Agent uses Qwen3 through Ollama and produces structured JSON output which is converted into a PRD object.
+The output is stored as a Product Requirements Document (PRD).
 
 ---
 
-### Architect Agent
+### 4.2 Architect Agent
 
-The Architect Agent reads the PRD and designs the system.
+The Architect Agent converts the PRD into a software architecture.
 
-It generates:
+#### Output
 
-* Frontend framework
-* Backend framework
-* Database design
-* Authentication strategy
-* Cache layer
-* Deployment strategy
-* Application modules
+* Frontend Stack
+* Backend Stack
+* Database
+* Authentication Strategy
+* Cache
+* Deployment Strategy
+* Software Modules
+
+Example modules:
+
+* AIRecommendationEngine
+* UserProfileManager
+* BookCatalogService
+* CommunityInsights
+* SmartSearch
+
+---
+
+### 4.3 Planner Agent
+
+The Planner Agent decomposes the architecture into executable tasks.
 
 Example:
 
-Frontend:
+```
+BookCatalogService
 
-React
+↓
 
-Backend:
+Build BookCatalogService
 
-FastAPI
+↓
 
-Database:
+Task Created
+```
 
-PostgreSQL
-
-Authentication:
-
-OAuth + JWT
-
-Modules:
-
-* AI Recommendation Engine
-* Book Club
-* Voice Assistant
+The tasks are stored in the shared project state.
 
 ---
 
-### Planner Agent
+### 4.4 Developer Agent
 
-The Planner Agent converts architecture into engineering tasks.
+The Developer Agent generates backend code automatically using Ollama and Qwen3.
+
+For each software module, it generates:
+
+* router.py
+* service.py
+* model.py
+
+Generated files are stored as File objects and written to disk using FileWriterTool.
+
+---
+
+### 4.5 Frontend Agent
+
+The Frontend Agent generates React-based frontend code using the architecture and backend APIs.
+
+Generated files include:
+
+* App.jsx
+* Navbar.jsx
+* api.js
+* Module-specific pages
 
 Example:
 
-Task #1
+```
+frontend/
 
-Create User Management Module
+App.jsx
 
-Task #2
+components/
 
-Create AI Recommendation Engine
+Navbar.jsx
 
-Task #3
+services/
 
-Create Voice Assistant Module
+api.js
 
-The Planner simulates an engineering manager who decomposes large projects into manageable tasks.
+pages/
+
+AIRecommendationEngine.jsx
+
+UserProfileManager.jsx
+```
 
 ---
 
-### Developer Agent
+## 5. Shared Components
 
-The Developer Agent converts modules into backend file structures.
+### 5.1 ProjectState
+
+ProjectState acts as a centralized memory shared among all agents.
+
+It stores:
+
+* idea
+* prd
+* architecture
+* tasks
+* backend_files
+* frontend_files
+
+---
+
+### 5.2 EventBus
+
+EventBus implements event-driven communication between agents.
 
 Example:
 
-backend/
+```
+Developer -> Frontend
 
-ai_recommendation_engine/
+Frontend -> CEO
+```
 
-router.py
-
-service.py
-
-model.py
-
-schemas.py
-
-tests.py
-
-The generated files are saved physically on disk using a File Writer Tool.
+This decouples agents and enables asynchronous communication.
 
 ---
 
-## 4. Technical Design
+### 5.3 AgentRegistry
 
-Forge is implemented using:
+AgentRegistry manages all active agents.
 
-* Python
-* Ollama
-* Qwen3
-* Dataclasses
-* Shared State Management
-* Event Driven Architecture
-* Multi-Agent Systems
+It provides:
 
-Core Components:
-
-1. Agent Framework
-2. Shared Memory Store
-3. Event Bus
-4. Agent Registry
-5. Project State Manager
-6. Code Generator Tool
-7. File Writer Tool
-
-All agents communicate through a shared state object and an event bus, enabling modular and extensible workflows.
+* register()
+* unregister()
+* get()
+* exists()
+* list_agents()
 
 ---
 
-## 5. Uniqueness of Forge
+### 5.4 CodeGeneratorTool
 
-Forge differs from traditional AI assistants in several ways.
+CodeGeneratorTool is a reusable abstraction responsible for:
 
-### 1. Multi-Agent Collaboration
-
-Instead of a single model solving everything, Forge divides work among:
-
-* CEO Agent
-* Architect Agent
-* Planner Agent
-* Developer Agent
-
-Each agent has its own responsibilities and communicates with other agents through shared state.
+* Sending prompts to Ollama
+* Cleaning markdown outputs
+* Returning generated code
 
 ---
 
-### 2. Local AI Execution
+### 5.5 FileWriterTool
 
-Forge runs entirely on local hardware using Ollama and Qwen3.
+FileWriterTool writes generated File objects to disk.
+
+This separates code generation from file management and improves modularity.
+
+---
+# 5. Core Components and Their Significance
+
+Apart from the specialized agents, ForgeAI contains several reusable components that enable modularity, extensibility, and communication among agents. These components form the foundation of the system architecture.
+
+---
+
+## 5.1 BaseAgent
+
+`BaseAgent` is the parent class for all specialized agents such as CEOAgent, ArchitectAgent, PlannerAgent, DeveloperAgent, and FrontendAgent.
+
+### Responsibilities
+
+* Stores common attributes such as:
+
+  * Agent name
+  * Shared memory
+  * Event bus
+  * Project state
+* Provides common methods:
+
+  * `think()`
+  * `act()`
+  * `send_message()`
+  * `receive_message()`
+
+### Significance
+
+The BaseAgent ensures that all agents follow a common interface and behavior. It promotes:
+
+* Code reusability
+* Extensibility
+* Reduced code duplication
+* Polymorphism
+
+By inheriting from BaseAgent, new agents can be added without modifying the existing architecture.
+
+---
+
+## 5.2 ProjectState
+
+ProjectState acts as a centralized shared memory accessible by all agents.
+
+### Stored Information
+
+* Product Idea
+* Product Requirements Document (PRD)
+* Architecture
+* Tasks
+* Backend Files
+* Frontend Files
+
+### Significance
+
+ProjectState enables indirect communication among agents.
+
+For example:
+
+```text
+CEO
+
+↓
+
+Stores PRD in ProjectState
+
+↓
+
+Architect reads PRD
+
+↓
+
+Stores Architecture
+
+↓
+
+Planner reads Architecture
+```
+
+This design avoids tight coupling between agents and allows them to collaborate independently.
+
+---
+
+## 5.3 Message
+
+The Message class represents communication exchanged between agents.
+
+### Attributes
+
+* Sender
+* Receiver
+* Content
+* Timestamp
+
+### Significance
+
+Messages make communication explicit and traceable.
+
+Example:
+
+```text
+Developer -> Frontend
+
+"Backend generated."
+
+
+Frontend -> CEO
+
+"Generated 8 frontend files."
+```
+
+This helps in:
+
+* Monitoring agent collaboration
+* Logging interactions
+* Future debugging and visualization
+
+---
+
+## 5.4 EventBus
+
+EventBus implements event-driven communication among agents.
+
+### Responsibilities
+
+* Publish messages
+* Deliver messages to receivers
+* Maintain communication history
+
+### Significance
+
+The EventBus decouples agents from each other.
+
+Instead of:
+
+```text
+Developer directly calls Frontend
+```
+
+the communication becomes:
+
+```text
+Developer
+
+↓
+
+EventBus
+
+↓
+
+Frontend
+```
 
 Advantages:
 
-* No API costs
-* No rate limits
-* Better privacy
-* Fully offline capability
+* Loose coupling
+* Easier extension
+* Supports asynchronous communication
+* Simplifies testing
+
+This architecture is inspired by event-driven systems used in distributed software systems.
 
 ---
 
-### 3. Event-Driven Architecture
+## 5.5 AgentRegistry
 
-Forge is designed as an extensible agent framework.
+AgentRegistry maintains references to all active agents.
 
-Future agents such as:
+### Responsibilities
 
-* Tester Agent
-* Debugger Agent
-* DevOps Agent
+* Register agents
+* Remove agents
+* Retrieve agents by name
+* List all agents
 
-can be integrated without modifying existing components.
+### Significance
+
+The registry acts as a directory service for agents.
+
+Without AgentRegistry:
+
+* Agents would require hardcoded references.
+* Adding or removing agents would require modifying multiple files.
+
+With AgentRegistry:
+
+* New agents can be dynamically added.
+* The architecture remains modular and scalable.
 
 ---
 
-### 4. Autonomous Software Engineering Pipeline
+## 5.6 CodeGeneratorTool
 
-Forge automates:
+CodeGeneratorTool is a reusable abstraction for interacting with the Large Language Model.
 
+### Responsibilities
+
+* Send prompts to Ollama
+* Receive generated code
+* Remove markdown formatting
+* Return clean source code
+
+### Significance
+
+This tool separates:
+
+```text
+Code Generation Logic
+
+from
+
+Agent Logic
+```
+
+Advantages:
+
+* Reusability
+* Easier maintenance
+* Consistent output cleaning
+* Simplified agent implementation
+
+Both DeveloperAgent and FrontendAgent reuse this tool.
+
+---
+
+## 5.7 FileWriterTool
+
+FileWriterTool is responsible for writing generated File objects to disk.
+
+### Responsibilities
+
+* Create directories
+* Write files
+* Manage output structure
+
+### Significance
+
+This tool separates:
+
+```text
+File Management
+
+from
+
+Code Generation
+```
+
+This improves:
+
+* Separation of concerns
+* Reusability
+* Maintainability
+
+Agents focus on generating content, while FileWriterTool handles storage.
+
+---
+
+## 5.8 File Model
+
+The File model represents generated source files.
+
+### Attributes
+
+* Path
+* Content
+
+Example:
+
+```text
+backend/
+
+SmartSearch/
+
+router.py
+
+
+frontend/
+
+App.jsx
+```
+
+### Significance
+
+The File abstraction enables:
+
+* Uniform handling of backend and frontend files
+* Easy storage in ProjectState
+* Simplified file writing
+* Future extensions such as versioning and downloads
+
+---
+
+## Summary
+
+These supporting components are crucial because they transform ForgeAI from a collection of prompts into a modular software engineering framework.
+
+Together they provide:
+
+* Object-Oriented Design
+* Event-Driven Communication
+* Shared State Management
+* Loose Coupling
+* Extensibility
+* Reusability
+
+As a result, ForgeAI is not merely an AI code generator, but a structured multi-agent system capable of modeling the software development lifecycle.
+
+## 6. Technologies Used
+
+### Programming Language
+
+* Python
+
+### Large Language Models
+
+* Ollama
+* Qwen3
+
+### Frontend
+
+* React
+* React Router
+* Axios
+
+### Backend
+
+* FastAPI
+* Flask
+
+### Architectural Concepts
+
+* Multi-Agent Systems
+* Object-Oriented Programming
+* Event-Driven Architecture
+* Shared State Architecture
+
+---
+
+## 7. Results
+
+ForgeAI successfully converts natural language software ideas into full-stack application skeletons.
+
+Example:
+
+**Input**
+
+```
+AI Powered Book Recommendation Platform
+```
+
+**Output**
+
+* Product Requirements Document (PRD)
+* Software Architecture
+* Task Breakdown
+* Backend Modules
+* Frontend Components
+
+The complete pipeline:
+
+```
 Idea
 
 ↓
 
-Requirements
+CEO
 
 ↓
 
-Architecture
+Architect
 
 ↓
 
-Planning
+Planner
 
 ↓
 
-Code Skeleton Generation
+Developer
 
-This resembles the workflow of real software organizations.
+↓
 
----
+Frontend
+```
 
-## 6. Applications
-
-Forge can be used for:
-
-### Startup Ideation
-
-Entrepreneurs can quickly generate:
-
-* PRDs
-* Architectures
-* Engineering plans
-
-from product ideas.
+was successfully implemented and tested using Ollama and Qwen3.
 
 ---
 
-### Educational Tool
 
-Students can learn:
 
-* Product Management
-* Software Architecture
-* System Design
-* Task Planning
-* Multi-Agent Systems
 
-through interactive experimentation.
 
----
+## 8. Conclusion
 
-### Research Platform
+ForgeAI demonstrates how multiple specialized AI agents can collaborate to automate software engineering tasks. Instead of relying on a single monolithic LLM call, the system decomposes software generation into multiple stages handled by autonomous agents.
 
-Forge can serve as a research framework for:
+The project highlights the effectiveness of:
 
-* Multi-Agent AI Systems
-* Agent Communication
-* Shared Memory Architectures
-* Autonomous Software Engineering
-* Human-AI Collaboration
+* Multi-Agent Collaboration
+* Event-Driven Communication
+* Shared State Management
+* Modular and Extensible Design
+
+ForgeAI serves as an exploration of autonomous software engineering and provides a foundation for future extensions such as QA agents, deployment agents, and live interactive interfaces.
+
+I built ForgeAI to explore whether software development can be decomposed into specialized AI agents instead of relying on a single monolithic LLM call. The project models the software engineering workflow using CEO, Architect, Planner, Developer, and Frontend agents that collaborate through shared state and event-driven communication. This modular design makes the system easier to extend and reflects how software is developed in real organizations.
+
+You can confidently say that **ForgeAI aims to reduce development time by generating an initial project skeleton that developers can refine instead of writing everything from scratch.** This is a practical and believable motivation for the project.
 
 ---
 
-### AI Software Engineering Assistant
+## 9. Future Work
 
-Future versions can automatically:
+Possible extensions include:
 
-* Generate code
-* Execute tests
-* Debug failures
-* Deploy applications
-
-creating a fully autonomous software engineering workflow.
-
----
-
-## 7. Comparison with Existing Systems
-
-Forge shares ideas with modern autonomous coding systems such as:
-
-* Devin AI
-* OpenHands
-* AutoGPT
-
-However, Forge differs because:
-
-1. It uses specialized agents with distinct roles.
-2. It runs locally using Ollama and Qwen3.
-3. It focuses on the complete software engineering lifecycle rather than code generation alone.
-
----
-
-## 8. Future Work
-
-Potential future extensions include:
-
-### Tester Agent
-
-Automatically run tests on generated code.
-
----
-
-### Debugger Agent
-
-Analyze failures and automatically repair code using LLM reasoning.
-
----
-
-### DevOps Agent
-
-Generate:
-
-* Dockerfiles
-* Docker Compose
-* CI/CD pipelines
-* Deployment scripts
-
----
-
-### LangGraph Integration
-
-Introduce graph-based agent orchestration with persistent memory and dynamic workflows.
-
----
-
-## 9. Conclusion
-
-Forge demonstrates how software engineering can be modeled as a collaborative multi-agent AI system.
-
-The project combines:
-
-* Large Language Models
-* Multi-Agent Systems
-* Event Driven Architectures
-* Software Engineering Principles
-* Local AI Execution
-
-to create an Autonomous AI Software Company capable of transforming product ideas into structured engineering artifacts and executable software skeletons.
-
-Forge serves both as a research prototype and as an exploration into the future of autonomous software engineering.
+* Streamlit-based live visualization
+* QA and testing agents
+* Deployment automation
+* Project export as ZIP
+* Improved agent collaboration
+* Production-ready backend and frontend generation
